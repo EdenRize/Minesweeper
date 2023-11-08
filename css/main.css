@@ -1,0 +1,90 @@
+body {
+  background-color: #27005d;
+  color: #aed2ff;
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+.info-container {
+  margin-block: 20px;
+}
+
+.board-container {
+  margin: auto;
+}
+
+.board {
+  box-shadow: 6px 10px 48px -86px rgba(228, 241, 255, 0.67);
+  -webkit-box-shadow: 6px 10px 48px -86px rgba(228, 241, 255, 0.67);
+  -moz-box-shadow: 6px 10px 48px -86px rgba(228, 241, 255, 0.67);
+}
+
+.cell {
+  font-size: 1.5em;
+  width: 2em;
+  height: 2em;
+  border: 2px solid #6753ff36;
+
+  background-color: #e4f1ff;
+
+  text-align: center;
+  color: #9400ff;
+}
+
+.smiley {
+  display: block;
+  margin: 20px auto;
+  width: 50px;
+  cursor: pointer;
+}
+
+.not-marked {
+  background-color: #aed2ff;
+}
+
+.marked {
+  background-color: rgb(234, 192, 255);
+  cursor: auto !important;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.pointer:hover {
+  background-color: #98b8e0;
+}
+
+.number-one {
+  color: blue;
+}
+
+.number-two {
+  color: green;
+}
+
+.number-three {
+  color: red;
+}
+
+.mine {
+  background-color: #9400ff;
+  color: #e4f1ff;
+}
+
+button {
+  cursor: pointer;
+}
+
+.selected-level {
+  background-color: orange;
+}
+
+.hints-container {
+  height: 50px;
+}
+
+.hints-container img {
+  width: 50px;
+  cursor: pointer;
+}
