@@ -7,36 +7,67 @@
     <link rel="stylesheet" href="css/main.css" />
   </head>
   <body onload="onInit()">
-    <div class="info-container">
-      <h1>Mine</h1>
-      <button
-        onclick="onLevelClick(this)"
-        class="selected-level"
-        data-size="4"
-        data-mines-count="2"
-      >
-        Beginner
-      </button>
-      <button onclick="onLevelClick(this)" data-size="8" data-mines-count="14">
-        Medium
-      </button>
-      <button onclick="onLevelClick(this)" data-size="12" data-mines-count="32">
-        Expert
-      </button>
-      <img onclick="onInit()" class="smiley" src="./img/smiley.png" />
-      <div class="hints-container">
-        <img onclick="onHint(this)" src="./img/off-hint.svg" />
-        <img onclick="onHint(this)" src="./img/off-hint.svg" />
-        <img onclick="onHint(this)" src="./img/off-hint.svg" />
+    <div class="game-container">
+      <div class="info-container">
+        <h1>Mine</h1>
+        <button
+          onclick="onLevelClick(this)"
+          class="selected-level"
+          data-size="4"
+          data-mines-count="2"
+        >
+          Beginner
+        </button>
+        <button
+          onclick="onLevelClick(this)"
+          data-size="8"
+          data-mines-count="14"
+        >
+          Medium
+        </button>
+        <button
+          onclick="onLevelClick(this)"
+          data-size="12"
+          data-mines-count="32"
+        >
+          Expert
+        </button>
+        <br />
+        <button onclick="handleCreative()">Creative</button>
+        <p class="creative-mines" hidden>
+          Mines left to set: <span class="creative-mines"></span>
+        </p>
+        <br />
+        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <img onclick="onInit()" class="smiley" src="./img/smiley.png" />
+        <div class="hints-container">
+          <img
+            class="pointer"
+            onclick="onHint(this)"
+            src="./img/off-hint.svg"
+          />
+          <img
+            class="pointer"
+            onclick="onHint(this)"
+            src="./img/off-hint.svg"
+          />
+          <img
+            class="pointer"
+            onclick="onHint(this)"
+            src="./img/off-hint.svg"
+          />
+        </div>
+        <button onclick="onSafeClick()">
+          Safe Click ( <span class="safe-click-counter"></span> left )
+        </button>
+        <p>Time: <span class="timer"></span></p>
+        <p>Mines: <span class="marked-counter"></span></p>
+        <p>Strikes Left: <span class="strikes-counter"></span></p>
       </div>
-      <p>Time: <span class="timer"></span></p>
-      <p>Mines: <span class="marked-counter"></span></p>
-      <p>Strikes Left: <span class="strikes-counter"></span></p>
+      <table class="board-container">
+        <tbody class="board"></tbody>
+      </table>
     </div>
-    <table class="board-container">
-      <tbody class="board"></tbody>
-    </table>
-
     <script src="js/util-services.js"></script>
     <script src="js/main.js"></script>
   </body>

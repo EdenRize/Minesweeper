@@ -1,8 +1,21 @@
+:root {
+  --main-color: #f5eec8;
+  --text-color: #555843;
+  --light-color: #a7d397;
+  --light-color-hover: rgb(148, 189, 133);
+  --nutral-color: #d0d4ca;
+}
+
 body {
-  background-color: #27005d;
-  color: #aed2ff;
-  text-align: center;
+  background-color: var(--main-color);
+  color: var(--text-color);
   padding-bottom: 20px;
+}
+
+.game-container {
+  /* background-color: #61485f; */
+  text-align: center;
+  margin: auto;
 }
 
 .info-container {
@@ -14,9 +27,9 @@ body {
 }
 
 .board {
-  box-shadow: 6px 10px 48px -86px rgba(228, 241, 255, 0.67);
-  -webkit-box-shadow: 6px 10px 48px -86px rgba(228, 241, 255, 0.67);
-  -moz-box-shadow: 6px 10px 48px -86px rgba(228, 241, 255, 0.67);
+  box-shadow: 6px 11px 9px -5px rgba(112, 86, 86, 0.67);
+  -webkit-box-shadow: 6px 11px 9px -5px rgba(112, 86, 86, 0.67);
+  -moz-box-shadow: 6px 11px 9px -5px rgba(112, 86, 86, 0.67);
 }
 
 .cell {
@@ -25,10 +38,10 @@ body {
   height: 2em;
   border: 2px solid #6753ff36;
 
-  background-color: #e4f1ff;
+  background-color: var(--nutral-color);
 
   text-align: center;
-  color: #9400ff;
+  color: var(--text-color);
 }
 
 .smiley {
@@ -39,7 +52,11 @@ body {
 }
 
 .not-marked {
-  background-color: #aed2ff;
+  background-color: var(--light-color);
+}
+
+.cell.pointer:hover {
+  background-color: var(--light-color-hover);
 }
 
 .marked {
@@ -47,12 +64,12 @@ body {
   cursor: auto !important;
 }
 
-.pointer {
-  cursor: pointer;
+.marked:hover {
+  background-color: rgb(234, 192, 255) !important;
 }
 
-.pointer:hover {
-  background-color: #98b8e0;
+.pointer {
+  cursor: pointer;
 }
 
 .number-one {
@@ -86,5 +103,4 @@ button {
 
 .hints-container img {
   width: 50px;
-  cursor: pointer;
 }
