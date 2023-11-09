@@ -8,8 +8,9 @@ var gIsSafeClick
 var gCreative
 var gMoves
 var gIsExterminator
+var gStrikes
 
-const MINE = '*'
+const MINE = `<img src="./img/mine.svg"/>`
 
 function onInit() {
   gLevel = getGlevel()
@@ -34,25 +35,26 @@ function onInit() {
   gIsSafeClick = false
   gIsExterminator = false
   gMoves = []
+  gStrikes = gLevel.minesCount > 2 ? 3 : 2
 
-  document.querySelector('.timer').innerText = null
-  const elCreativeMines = document.querySelector('.creative-mines')
-  elCreativeMines.hidden = true
-  const elMegaHint = document.querySelector('.mega-hint')
-  elMegaHint.hidden = false
-  const elExterminator = document.querySelector('.exterminator')
-  elExterminator.hidden = false
+  document.querySelector('.timer').innerText = '0.00'
+  handlePointerClass(document.querySelectorAll('.hints-container img'), true)
+  handleHiddenEl('.creative-mines', true)
+  hadleDisabledEl('.undo', true)
+  hadleDisabledEl('.exterminator', true)
+  hadleDisabledEl('.safe-click', true)
+  hadleDisabledEl('.mega-hint', true)
 
   renderStrikesCounter()
   renderMarkedCounter()
   renderSafeClicks()
   reRenderBulbs()
   renderBoard(gBoard)
+  initDarkMode()
 }
 
 function populateBoard(freePos) {
   if (!gCreative.isCreative && !gIsExterminator) {
-    console.log('here')
     setMines(gBoard, freePos)
   }
 
@@ -100,8 +102,6 @@ function setMines(board, freePos) {
     }
     board[chosenPos.i][chosenPos.j].isMine = true
   }
-  //   board[1][1].isMine = true
-  //   board[2][2].isMine = true
 }
 
 function onCellClicked(elCell, i, j, isRecursive = false) {
@@ -135,14 +135,22 @@ function onCellClicked(elCell, i, j, isRecursive = false) {
 
   if (gGame.isFirstClick) {
     populateBoard({ i, j })
-    console.table(gBoard)
     gGame.isFirstClick = false
     startClock()
+    hadleDisabledEl('.undo', false)
+    hadleDisabledEl('.exterminator', false)
+    hadleDisabledEl('.safe-click', false)
+    hadleDisabledEl('.mega-hint', false)
+  }
+
+  if (!gMoves.length) {
+    hadleDisabledEl('.undo', false)
   }
 
   if (gHint.isOn) {
     gHint.isOn = false
     gHint.isHinting = true
+    handlePointerClass([gHint.elBulb], false)
 
     const coordsToShow = getNegsCoords(gBoard, { i, j })
     coordsToShow.push({ i, j })
@@ -160,10 +168,15 @@ function onCellClicked(elCell, i, j, isRecursive = false) {
   if (gMegaHint.isOn) {
     if (!gMegaHint.firstCoords) {
       gMegaHint.firstCoords = { i, j }
+      elCell.classList.add('marked')
       return
     }
     gMegaHint.secondCoords = { i, j }
-
+    const elPrevCell = getCellEl(
+      gMegaHint.firstCoords.i,
+      gMegaHint.firstCoords.j
+    )
+    elPrevCell.classList.remove('marked')
     handleMegaHint()
     return
   }
@@ -181,7 +194,7 @@ function onCellClicked(elCell, i, j, isRecursive = false) {
 
   if (currCell.isMine) {
     gMoves[gMoves.length - 1].isMine = true
-    handleStrikes(elCell)
+    handleStrikes()
     return
   }
 
@@ -198,6 +211,8 @@ function onRightClick(elCell, i, j) {
   if (!gGame.isOn || currCell.isShown) return
 
   elCell.classList.toggle('marked')
+  if (elCell.innerHTML) elCell.innerHTML = null
+  else elCell.innerHTML = `<img src="./img/flag.svg"/>`
   if (currCell.isMarked) {
     gGame.markedCount--
     currCell.isMarked = false
@@ -255,16 +270,8 @@ function getMineNegsCount(board, pos) {
 }
 
 function isWin() {
-  //   console.log(
-  //     'gGame.markedCount === gLevel.minesCount - gGame.strikesCount',
-  //     gGame.markedCount === gLevel.minesCount - gGame.strikesCount
-  //   )
-  //   console.log(
-  //     'gGame.shownCount === gLevel.size ** 2 - gLevel.minesCount',
-  //     gGame.shownCount === gLevel.size ** 2 - gLevel.minesCount
-  //   )
   return (
-    gGame.markedCount === gLevel.minesCount - gGame.strikesCount &&
+    gGame.markedCount === gLevel.minesCount &&
     gGame.shownCount === gLevel.size ** 2 - gLevel.minesCount
   )
 }
@@ -280,6 +287,12 @@ function handleGameOver(isWin) {
     changeSmiley('sad')
     renderAllMines(true)
   }
+
+  hadleDisabledEl('.undo', true)
+  hadleDisabledEl('.exterminator', true)
+  hadleDisabledEl('.safe-click', true)
+  hadleDisabledEl('.mega-hint', true)
+  handlePointerClass(document.querySelectorAll('.hints-container img'), false)
 }
 
 function getCellContent(cell) {
@@ -300,22 +313,39 @@ function removeNotMarkedClass() {
   }
 }
 
-function handleStrikes(elCell) {
+function handleStrikes() {
   gGame.strikesCount++
+  gGame.markedCount++
   renderStrikesCounter()
+  renderMarkedCounter()
 
-  if (gGame.strikesCount === 2) handleGameOver(false)
-  //   if (isWin()) handleGameOver(true)
+  if (gGame.strikesCount === gStrikes) handleGameOver(false)
 }
 
 function renderStrikesCounter() {
-  const elStrikesCounter = document.querySelector('.strikes-counter')
-  elStrikesCounter.innerText = 2 - gGame.strikesCount
+  var strHTML = ''
+
+  for (let i = 0; i < gStrikes - gGame.strikesCount; i++) {
+    strHTML += `<img class="heart-img" src="./img/heart.svg" />`
+  }
+
+  const elStrikesCounter = document.querySelector('.strikes-container')
+  elStrikesCounter.innerHTML = strHTML
+  handleTransform(elStrikesCounter)
 }
 
 function renderMarkedCounter() {
   const elMarkedCounter = document.querySelector('.marked-counter')
+
   elMarkedCounter.innerText = gLevel.minesCount - gGame.markedCount
+}
+
+function handleTransform(el) {
+  el.classList.add('big-transform')
+
+  setTimeout(() => {
+    el.classList.remove('big-transform')
+  }, 300)
 }
 
 function renderSafeClicks() {
@@ -328,15 +358,17 @@ function changeSmiley(emotion) {
 
   switch (emotion) {
     case 'happy':
-      elSmiley.src = './img/smiley.png'
+      elSmiley.src = './img/smiley.svg'
       break
     case 'sad':
-      elSmiley.src = './img/sad.png'
+      elSmiley.src = './img/sad.svg'
       break
     case 'win':
-      elSmiley.src = './img/win.png'
+      elSmiley.src = './img/win.svg'
       break
   }
+
+  handleTransform(elSmiley)
 }
 
 function onLevelClick(elLevel) {
@@ -395,7 +427,8 @@ function onHint(elBulb) {
     (gHint.isOn && gHint.elBulb !== elBulb) ||
     gHint.isHinting ||
     gCreative.isCreating ||
-    gIsSafeClick
+    gIsSafeClick ||
+    gMegaHint.isOn
   )
     return
   if (gHint.isOn) {
@@ -418,8 +451,9 @@ function onSafeClick() {
     gIsSafeClick
   )
     return
-  gIsSafeClick = true
   const SafeCellsCoords = getSafeCellsCoords()
+  if (!SafeCellsCoords.length) return
+  gIsSafeClick = true
   const selectedPos = SafeCellsCoords[getRandomInt(0, SafeCellsCoords.length)]
   const elCell = getCellEl(selectedPos.i, selectedPos.j)
 
@@ -430,6 +464,8 @@ function onSafeClick() {
   )
   gGame.safeClicksLeft--
   renderSafeClicks()
+
+  if (!gGame.safeClicksLeft) hadleDisabledEl('.safe-click', true)
 
   setTimeout(
     () => {
@@ -466,7 +502,11 @@ function renderAllMines(isShow) {
 }
 
 function handleCellDisplay(elCell, cellContent, isAddClassLists) {
-  elCell.innerText = cellContent
+  if (cellContent === MINE) {
+    elCell.innerHTML = cellContent
+  } else {
+    elCell.innerText = cellContent
+  }
   if (isAddClassLists) {
     elCell.classList.add('not-marked')
     elCell.classList.add('pointer')
@@ -484,21 +524,48 @@ function reRenderBulbs() {
   }
 }
 
+function handlePointerClass(els, isPointer) {
+  for (let i = 0; i < els.length; i++) {
+    currEl = els[i]
+    if (isPointer) currEl.classList.add('pointer')
+    else currEl.classList.remove('pointer')
+  }
+}
+
 function renderCreativeMinesCounter() {
   const elCreativeMinesCounter = document.querySelector('.creative-mines span')
   elCreativeMinesCounter.innerText = gCreative.minesLeft
 }
 
 function handleLocalStorage() {
-  const currBest = localStorage.getItem(`${gLevel.size}`)
+  var currBest = localStorage.getItem(`${gLevel.size}`)
   const elTimer = document.querySelector('.timer')
-  console.log(elTimer.innerText)
-  var winTime = elTimer.innerText
+  var winTime = +elTimer.innerText
+
   if (currBest) {
-    if (currBest < winTime) winTime = currBest
+    if (currBest > winTime) {
+      currBest = winTime
+      var level
+      if (gLevel.size === 4) level = 'Beginner'
+      else if (gLevel.size === 8) level = 'Medium'
+      else level = 'Expert'
+
+      const elModal = document.querySelector('.best-score-modal')
+      const elBestLevel = document.querySelector('.best-level')
+      const elBestScore = document.querySelector('.best-score-container')
+      elBestScore.innerText = currBest
+      elBestLevel.innerText = level
+      elModal.style.opacity = 1
+
+      setTimeout(() => {
+        elModal.style.opacity = 0
+      }, 6000)
+    }
+  } else {
+    currBest = winTime
   }
 
-  localStorage.setItem(`${gLevel.size}`, winTime)
+  localStorage.setItem(`${gLevel.size}`, currBest)
 }
 
 function handleCreative() {
@@ -513,23 +580,35 @@ function handleCreative() {
   renderCreativeMinesCounter()
 }
 
+function initDarkMode() {
+  if (!localStorage.getItem('isDark')) return
+  const isDark = JSON.parse(localStorage.getItem('isDark'))
+  activeDarkMode(isDark)
+}
+
 function toggleDarkMode() {
   if (!localStorage.getItem('isDark')) {
     localStorage.setItem('isDark', false)
   }
   const isDark = JSON.parse(localStorage.getItem('isDark'))
+  activeDarkMode(!isDark)
+}
+
+function activeDarkMode(isDark) {
   var elRoot = document.querySelector(':root')
-  if (!isDark) {
-    elRoot.style.setProperty('--main-color', '#331D2C')
-    elRoot.style.setProperty('--text-color', '#EFE1D1')
-    elRoot.style.setProperty('--nutral-color', '#A78295')
-    elRoot.style.setProperty('--light-color', '#6c506a')
-    elRoot.style.setProperty('--light-color-hover', '#61485f')
+  if (isDark) {
+    elRoot.style.setProperty('--main-color', '#352F44')
+    elRoot.style.setProperty('--text-color', '#FAF0E6')
+    elRoot.style.setProperty('--nutral-color', '#5C5470')
+    elRoot.style.setProperty('--nutral-color-hover', '#443e54')
+    elRoot.style.setProperty('--light-color', '#B9B4C7')
+    elRoot.style.setProperty('--light-color-hover', '#9691a4')
     localStorage.setItem('isDark', true)
   } else {
     elRoot.style.setProperty('--main-color', '#f5eec8')
-    elRoot.style.setProperty('--text-color', '#555843')
+    elRoot.style.setProperty('--text-color', '#2f3124')
     elRoot.style.setProperty('--nutral-color', '#d0d4ca')
+    elRoot.style.setProperty('--nutral-color-hover', '#afb5a6')
     elRoot.style.setProperty('--light-color', '#a7d397')
     elRoot.style.setProperty('--light-color-hover', 'rgb(148, 189, 133)')
     localStorage.setItem('isDark', false)
@@ -549,7 +628,9 @@ function onUndo() {
 
   if (move.isMine) {
     gGame.strikesCount--
+    gGame.markedCount--
     renderStrikesCounter()
+    renderMarkedCounter()
     return
   }
 
@@ -558,6 +639,16 @@ function onUndo() {
   if (move.isRecursive) {
     onUndo()
   }
+
+  if (!gMoves.length) {
+    hadleDisabledEl('.undo', true)
+  }
+
+  const elUndo = document.querySelector('.undo')
+  elUndo.classList.add('rotated')
+  setTimeout(() => {
+    elUndo.classList.remove('rotated')
+  }, 400)
 }
 
 function onMegaHint() {
@@ -579,6 +670,7 @@ function onMegaHint() {
 }
 
 function handleMegaHint() {
+  hadleDisabledEl('.mega-hint', true)
   const coords = getMegaHintCoords()
 
   displayCoords(coords, true)
@@ -588,9 +680,6 @@ function handleMegaHint() {
     displayCoords(coords, false)
     gMegaHint.isMegaHinting = false
     gMegaHint.isOn = false
-
-    const elMegaHint = document.querySelector('.mega-hint')
-    elMegaHint.hidden = true
   }, 2000)
 }
 
@@ -635,7 +724,8 @@ function onExterminator() {
     gMegaHint.isMegaHinting ||
     gHint.isHinting ||
     gIsSafeClick ||
-    gIsExterminator
+    gIsExterminator ||
+    gGame.isFirstClick
   )
     return
 
@@ -651,7 +741,7 @@ function onExterminator() {
 
   var endIdx
 
-  if (gLevel.MinesCount < 3) endIdx = gLevel.MinesCount
+  if (gLevel.minesCount < 3) endIdx = gLevel.minesCount - 1
   else if (MinesCoords.length < 3) endIdx = MinesCoords.length
   else endIdx = 3
 
@@ -662,10 +752,12 @@ function onExterminator() {
     )[0]
     gBoard[currMineCoords.i][currMineCoords.j].isMine = false
     gLevel.minesCount--
+    if (gLevel.minesCount <= gStrikes) gStrikes--
   }
 
   populateBoard(null)
   renderMarkedCounter()
+  renderStrikesCounter()
 
   for (let i = 0; i < gBoard.length; i++) {
     for (let j = 0; j < gBoard[i].length; j++) {
@@ -676,8 +768,11 @@ function onExterminator() {
     }
   }
 
-  const elExterminator = document.querySelector('.exterminator')
-  elExterminator.hidden = true
+  hadleDisabledEl('.exterminator', true)
+  const elMarkedCounterContainer = document.querySelector(
+    '.marked-counter-container'
+  )
+  handleTransform(elMarkedCounterContainer)
 }
 
 function displayCoords(coords, isShow) {
@@ -693,9 +788,27 @@ function displayCoords(coords, isShow) {
         getCellContent(gBoard[currPos.i][currPos.j]),
         false
       )
-      currEl.innerText = getCellContent(gBoard[currPos.i][currPos.j])
+      if (getCellContent(gBoard[currPos.i][currPos.j]) === MINE) {
+        currEl.innerHTML = MINE
+      } else {
+        currEl.innerText = getCellContent(gBoard[currPos.i][currPos.j])
+      }
     } else {
       handleCellDisplay(currEl, null, true)
     }
+  }
+}
+
+function handleHiddenEl(selector, isHidden) {
+  const el = document.querySelector(selector)
+  el.hidden = isHidden
+}
+
+function hadleDisabledEl(selector, isDisabled) {
+  const el = document.querySelector(selector)
+  if (isDisabled) {
+    el.classList.add('disabled')
+  } else {
+    el.classList.remove('disabled')
   }
 }
