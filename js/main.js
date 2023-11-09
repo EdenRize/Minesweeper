@@ -3,8 +3,11 @@ var gGame // {isOn:Boolian, isFirstClick:Boolian, shownCount:X, markedCount:X, s
 var gLevel // {size:X , minesCount:X}
 var gTimerInterval
 var gHint
+var gMegaHint
 var gIsSafeClick
 var gCreative
+var gMoves
+var gIsExterminator
 
 const MINE = '*'
 
@@ -26,10 +29,19 @@ function onInit() {
   clearInterval(gTimerInterval)
   gTimerInterval = null
   gHint = { isOn: false, isHinting: false }
+  gMegaHint = { isOn: false, isMegaHinting: false }
   gCreative = { isCreative: false, isCreating: false }
   gIsSafeClick = false
+  gIsExterminator = false
+  gMoves = []
 
   document.querySelector('.timer').innerText = null
+  const elCreativeMines = document.querySelector('.creative-mines')
+  elCreativeMines.hidden = true
+  const elMegaHint = document.querySelector('.mega-hint')
+  elMegaHint.hidden = false
+  const elExterminator = document.querySelector('.exterminator')
+  elExterminator.hidden = false
 
   renderStrikesCounter()
   renderMarkedCounter()
@@ -39,7 +51,8 @@ function onInit() {
 }
 
 function populateBoard(freePos) {
-  if (!gCreative.isCreative) {
+  if (!gCreative.isCreative && !gIsExterminator) {
+    console.log('here')
     setMines(gBoard, freePos)
   }
 
@@ -91,14 +104,15 @@ function setMines(board, freePos) {
   //   board[2][2].isMine = true
 }
 
-function onCellClicked(elCell, i, j) {
+function onCellClicked(elCell, i, j, isRecursive = false) {
   const currCell = gBoard[i][j]
   if (
     !gGame.isOn ||
     currCell.isShown ||
     currCell.isMarked ||
     gHint.isHinting ||
-    gIsSafeClick
+    gIsSafeClick ||
+    gMegaHint.isMegaHinting
   )
     return
 
@@ -133,44 +147,47 @@ function onCellClicked(elCell, i, j) {
     const coordsToShow = getNegsCoords(gBoard, { i, j })
     coordsToShow.push({ i, j })
 
-    for (let i = 0; i < coordsToShow.length; i++) {
-      var currPos = coordsToShow[i]
-      var currEl = getCellEl(currPos.i, currPos.j)
-      handleCellDisplay(
-        currEl,
-        getCellContent(gBoard[currPos.i][currPos.j]),
-        false
-      )
-      currEl.innerText = getCellContent(gBoard[currPos.i][currPos.j])
-    }
+    displayCoords(coordsToShow, true)
 
-    setTimeout(
-      () => {
-        for (let i = 0; i < coordsToShow.length; i++) {
-          var currPos = coordsToShow[i]
-          if (gBoard[currPos.i][currPos.j].isShown) continue
-          var currEl = getCellEl(currPos.i, currPos.j)
-          handleCellDisplay(currEl, null, true)
-          gHint.elBulb.hidden = true
-          gHint.isHinting = false
-        }
-      },
-      2000,
-      coordsToShow
-    )
+    setTimeout(() => {
+      displayCoords(coordsToShow, false)
+      gHint.elBulb.hidden = true
+      gHint.isHinting = false
+    }, 2000)
     return
   }
 
+  if (gMegaHint.isOn) {
+    if (!gMegaHint.firstCoords) {
+      gMegaHint.firstCoords = { i, j }
+      return
+    }
+    gMegaHint.secondCoords = { i, j }
+
+    handleMegaHint()
+    return
+  }
+
+  gMoves.push({})
+
   handleCellDisplay(elCell, getCellContent(currCell), false)
+  gMoves[gMoves.length - 1].handleCellDisplay = {
+    elCell,
+    cellContent: null,
+    isAddClassLists: true,
+  }
   currCell.isShown = true
+  gMoves[gMoves.length - 1].isShown = { cell: currCell, isShown: false }
 
   if (currCell.isMine) {
+    gMoves[gMoves.length - 1].isMine = true
     handleStrikes(elCell)
     return
   }
 
   gGame.shownCount++
 
+  if (isRecursive) gMoves[gMoves.length - 1].isRecursive = true
   if (!currCell.minesAroundCount) handleEmptyCell({ i, j })
   if (isWin()) handleGameOver(true)
 }
@@ -353,7 +370,7 @@ function handleEmptyCell(pos) {
     var currCell = gBoard[currPos.i][currPos.j]
     if (!currCell.isMarked) {
       const elCell = getCellEl(currPos.i, currPos.j)
-      onCellClicked(elCell, currPos.i, currPos.j)
+      onCellClicked(elCell, currPos.i, currPos.j, true)
     }
   }
 }
@@ -377,7 +394,8 @@ function onHint(elBulb) {
     !gGame.isOn ||
     (gHint.isOn && gHint.elBulb !== elBulb) ||
     gHint.isHinting ||
-    gCreative.isCreating
+    gCreative.isCreating ||
+    gIsSafeClick
   )
     return
   if (gHint.isOn) {
@@ -515,5 +533,169 @@ function toggleDarkMode() {
     elRoot.style.setProperty('--light-color', '#a7d397')
     elRoot.style.setProperty('--light-color-hover', 'rgb(148, 189, 133)')
     localStorage.setItem('isDark', false)
+  }
+}
+
+function onUndo() {
+  if (!gGame.isOn || gGame.isFirstClick || !gMoves.length) return
+  const move = gMoves.pop()
+
+  handleCellDisplay(
+    move.handleCellDisplay.elCell,
+    move.handleCellDisplay.cellContent,
+    move.handleCellDisplay.isAddClassLists
+  )
+  move.isShown.cell.isShown = move.isShown.isShown
+
+  if (move.isMine) {
+    gGame.strikesCount--
+    renderStrikesCounter()
+    return
+  }
+
+  gGame.shownCount--
+
+  if (move.isRecursive) {
+    onUndo()
+  }
+}
+
+function onMegaHint() {
+  if (
+    !gGame.isOn ||
+    gHint.isOn ||
+    gCreative.isCreating ||
+    gGame.isFirstClick ||
+    gIsSafeClick
+  )
+    return
+
+  if (gMegaHint.isOn) {
+    gMegaHint.isOn = false
+    return
+  }
+
+  gMegaHint.isOn = true
+}
+
+function handleMegaHint() {
+  const coords = getMegaHintCoords()
+
+  displayCoords(coords, true)
+  gMegaHint.isMegaHinting = true
+
+  setTimeout(() => {
+    displayCoords(coords, false)
+    gMegaHint.isMegaHinting = false
+    gMegaHint.isOn = false
+
+    const elMegaHint = document.querySelector('.mega-hint')
+    elMegaHint.hidden = true
+  }, 2000)
+}
+
+function getMegaHintCoords() {
+  var firstCoords
+  var secondCoords
+
+  if (gMegaHint.firstCoords.i > gMegaHint.secondCoords.i) {
+    firstCoords = gMegaHint.secondCoords
+    secondCoords = gMegaHint.firstCoords
+  } else if (gMegaHint.firstCoords.i < gMegaHint.secondCoords.i) {
+    firstCoords = gMegaHint.firstCoords
+    secondCoords = gMegaHint.secondCoords
+  } else {
+    if (gMegaHint.firstCoords.j > gMegaHint.secondCoords.j) {
+      firstCoords = gMegaHint.secondCoords
+      secondCoords = gMegaHint.firstCoords
+    } else {
+      firstCoords = gMegaHint.firstCoords
+      secondCoords = gMegaHint.secondCoords
+    }
+  }
+
+  const megaHintCoords = []
+
+  var startIdxJ =
+    firstCoords.j > secondCoords.j ? secondCoords.j : firstCoords.j
+  var endIdxJ = secondCoords.j > firstCoords.j ? secondCoords.j : firstCoords.j
+
+  for (let i = firstCoords.i; i <= secondCoords.i; i++) {
+    for (let j = startIdxJ; j <= endIdxJ; j++) {
+      megaHintCoords.push({ i, j })
+    }
+  }
+
+  return megaHintCoords
+}
+
+function onExterminator() {
+  if (
+    !gGame.isOn ||
+    gMegaHint.isMegaHinting ||
+    gHint.isHinting ||
+    gIsSafeClick ||
+    gIsExterminator
+  )
+    return
+
+  gIsExterminator = true
+  const MinesCoords = getMinesCoords()
+
+  for (let i = 0; i < MinesCoords.length; i++) {
+    var currPos = MinesCoords[i]
+    if (gBoard[currPos.i][currPos.j].isShown) {
+      MinesCoords.splice(i, 1)
+    }
+  }
+
+  var endIdx
+
+  if (gLevel.MinesCount < 3) endIdx = gLevel.MinesCount
+  else if (MinesCoords.length < 3) endIdx = MinesCoords.length
+  else endIdx = 3
+
+  for (let i = 0; i < endIdx; i++) {
+    var currMineCoords = MinesCoords.splice(
+      getRandomInt(0, MinesCoords.length),
+      1
+    )[0]
+    gBoard[currMineCoords.i][currMineCoords.j].isMine = false
+    gLevel.minesCount--
+  }
+
+  populateBoard(null)
+  renderMarkedCounter()
+
+  for (let i = 0; i < gBoard.length; i++) {
+    for (let j = 0; j < gBoard[i].length; j++) {
+      var currCell = gBoard[i][j]
+      if (!currCell.isShown) continue
+      var elCurrCell = getCellEl(i, j)
+      handleCellDisplay(elCurrCell, getCellContent(currCell), false)
+    }
+  }
+
+  const elExterminator = document.querySelector('.exterminator')
+  elExterminator.hidden = true
+}
+
+function displayCoords(coords, isShow) {
+  for (let i = 0; i < coords.length; i++) {
+    var currPos = coords[i]
+    if (!isShow) {
+      if (gBoard[currPos.i][currPos.j].isShown) continue
+    }
+    var currEl = getCellEl(currPos.i, currPos.j)
+    if (isShow) {
+      handleCellDisplay(
+        currEl,
+        getCellContent(gBoard[currPos.i][currPos.j]),
+        false
+      )
+      currEl.innerText = getCellContent(gBoard[currPos.i][currPos.j])
+    } else {
+      handleCellDisplay(currEl, null, true)
+    }
   }
 }
