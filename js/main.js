@@ -44,6 +44,8 @@ function onInit() {
   hadleDisabledEl('.exterminator', true)
   hadleDisabledEl('.safe-click', true)
   hadleDisabledEl('.mega-hint', true)
+  const elCreativeBtn = document.querySelector('.creative-btn')
+  elCreativeBtn.classList.remove('outline')
 
   renderStrikesCounter()
   renderMarkedCounter()
@@ -569,15 +571,29 @@ function handleLocalStorage() {
 }
 
 function handleCreative() {
-  onInit()
-  gCreative.isCreative = true
-  gCreative.isCreating = true
-  gCreative.minesLeft = gLevel.minesCount
-
+  const elCreativeBtn = document.querySelector('.creative-btn')
   const elCreativeMines = document.querySelector('.creative-mines')
-  elCreativeMines.hidden = false
 
-  renderCreativeMinesCounter()
+  if (gCreative.isCreative) {
+    gCreative.isCreative = false
+    gCreative.isCreating = false
+    gCreative.minesLeft = null
+
+    elCreativeMines.hidden = true
+    elCreativeBtn.classList.remove('outline')
+    onInit()
+  } else {
+    onInit()
+    console.log('here')
+    gCreative.isCreative = true
+    gCreative.isCreating = true
+    gCreative.minesLeft = gLevel.minesCount
+
+    elCreativeMines.hidden = false
+    elCreativeBtn.classList.add('outline')
+
+    renderCreativeMinesCounter()
+  }
 }
 
 function initDarkMode() {
@@ -661,16 +677,29 @@ function onMegaHint() {
   )
     return
 
+  const elMegaHint = document.querySelector('.mega-hint')
   if (gMegaHint.isOn) {
     gMegaHint.isOn = false
+    elMegaHint.classList.remove('outline')
+    if (gMegaHint.firstCoords) {
+      const elFirstCoords = getCellEl(
+        gMegaHint.firstCoords.i,
+        gMegaHint.firstCoords.j
+      )
+      elFirstCoords.classList.remove('marked')
+      gMegaHint.firstCoords = null
+    }
     return
   }
 
   gMegaHint.isOn = true
+  elMegaHint.classList.add('outline')
 }
 
 function handleMegaHint() {
   hadleDisabledEl('.mega-hint', true)
+  const elMegaHint = document.querySelector('.mega-hint')
+  elMegaHint.classList.remove('outline')
   const coords = getMegaHintCoords()
 
   displayCoords(coords, true)

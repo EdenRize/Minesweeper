@@ -199,3 +199,7 @@ button:hover {
   width: 50px;
   margin-inline: 10px;
 }
+
+.outline {
+  outline: 3px solid #ff5e8a;
+}
