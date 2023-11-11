@@ -1,4 +1,4 @@
-# MineSweeper
+# MineSweeper 💣
 
 
 ## Table Of Contents
