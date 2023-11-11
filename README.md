@@ -20,7 +20,7 @@ Developed for the first sprint at Coding Academy.
 
 ## <a id="start" /> Getting Started
 
-You can view the application on Github Pages right [here](https://edenrize.github.io/Minesweeper/).
+You can view the application on Github Pages right [here](https://edenrize.github.io/Minesweeper/){:target="_blank"} .
 
 Or you can clone the project to your computer and make it work with Live Server:
 
