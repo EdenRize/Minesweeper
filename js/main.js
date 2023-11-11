@@ -166,6 +166,7 @@ function onCellClicked(elCell, i, j, isRecursive = false) {
 }
 
 function onRightClick(elCell, i, j) {
+  if (window.screen.width < 1024) return
   const currCell = gBoard[i][j]
 
   if (!gGame.isOn || currCell.isShown) return
@@ -231,10 +232,13 @@ function getMineNegsCount(board, pos) {
 }
 
 function isWin() {
-  return (
-    gGame.markedCount === gLevel.minesCount &&
-    gGame.shownCount === gLevel.size ** 2 - gLevel.minesCount
-  )
+  if (window.screen.width > 1024) {
+    return (
+      gGame.markedCount === gLevel.minesCount &&
+      gGame.shownCount === gLevel.size ** 2 - gLevel.minesCount
+    )
+  }
+  return gGame.shownCount === gLevel.size ** 2 - gLevel.minesCount
 }
 
 function handleGameOver(isWin) {
