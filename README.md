@@ -28,7 +28,7 @@ Or you can clone the project to your computer and make it work with Live Server:
 git clone https://github.com/EdenRize/Minesweeper
 ```
 
-## <a id="features" />
+## <a id="features" /> Features
 
 > *Lives*: The game includes HP system according to the difficulty level.
 
