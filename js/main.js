@@ -45,8 +45,8 @@ function onInit() {
   hadleDisabledEl('.exterminator', true)
   hadleDisabledEl('.safe-click', true)
   hadleDisabledEl('.mega-hint', true)
-  const elCreativeBtn = document.querySelector('.creative-btn')
-  elCreativeBtn.classList.remove('outline')
+  handleOutline('.creative-btn', false)
+  handleOutline('.mega-hint', false)
 
   renderStrikesCounter()
   renderMarkedCounter()
@@ -559,7 +559,6 @@ function handleLocalStorage() {
 }
 
 function onCreative() {
-  const elCreativeBtn = document.querySelector('.creative-btn')
   const elCreativeMines = document.querySelector('.creative-mines')
 
   if (gCreative.isCreative) {
@@ -568,7 +567,7 @@ function onCreative() {
     gCreative.minesLeft = null
 
     elCreativeMines.hidden = true
-    elCreativeBtn.classList.remove('outline')
+    handleOutline('.creative-btn', false)
     onInit()
   } else {
     onInit()
@@ -577,7 +576,7 @@ function onCreative() {
     gCreative.minesLeft = gLevel.minesCount
 
     elCreativeMines.hidden = false
-    elCreativeBtn.classList.add('outline')
+    handleOutline('.creative-btn', true)
 
     renderCreativeMinesCounter()
   }
@@ -704,10 +703,9 @@ function onMegaHint() {
   )
     return
 
-  const elMegaHint = document.querySelector('.mega-hint')
   if (gMegaHint.isOn) {
     gMegaHint.isOn = false
-    elMegaHint.classList.remove('outline')
+    handleOutline('.mega-hint', false)
     if (gMegaHint.firstCoords) {
       const elFirstCoords = getCellEl(
         gMegaHint.firstCoords.i,
@@ -720,7 +718,7 @@ function onMegaHint() {
   }
 
   gMegaHint.isOn = true
-  elMegaHint.classList.add('outline')
+  handleOutline('.mega-hint', true)
 }
 
 function handleMegaHint(i, j, elCell) {
@@ -733,8 +731,7 @@ function handleMegaHint(i, j, elCell) {
   const elPrevCell = getCellEl(gMegaHint.firstCoords.i, gMegaHint.firstCoords.j)
   elPrevCell.classList.remove('marked')
   hadleDisabledEl('.mega-hint', true)
-  const elMegaHint = document.querySelector('.mega-hint')
-  elMegaHint.classList.remove('outline')
+  handleOutline('.mega-hint', false)
   const coords = getMegaHintCoords()
 
   displayCoords(coords, true)
@@ -877,4 +874,10 @@ function hadleDisabledEl(selector, isDisabled) {
   } else {
     el.classList.remove('disabled')
   }
+}
+
+function handleOutline(selector, isOutline) {
+  const elMegaHint = document.querySelector(selector)
+  if (isOutline) elMegaHint.classList.add('outline')
+  else elMegaHint.classList.remove('outline')
 }
