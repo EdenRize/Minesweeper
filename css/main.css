@@ -17,6 +17,17 @@ body {
   user-select: none;
 }
 
+.creative-mines-container p {
+  margin: unset;
+}
+.creative-mines-container {
+  margin-block: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+}
+
 .game-container {
   text-align: center;
   margin: auto;
@@ -50,7 +61,7 @@ body {
 }
 
 .resets-container {
-  margin: 25px;
+  margin-bottom: 20px;
 }
 
 .smiley {
@@ -79,6 +90,8 @@ body {
 
 .marked {
   background-color: rgb(234, 192, 255);
+  color: black;
+
   cursor: auto !important;
 }
 
@@ -111,7 +124,6 @@ button:hover {
 
 .hints-container {
   height: 50px;
-  margin-bottom: 15px;
 }
 
 .hints-container img {
@@ -120,6 +132,7 @@ button:hover {
 
 .dark-mode {
   position: fixed;
+  display: flex;
   top: 25px;
   right: 25px;
 }
@@ -202,4 +215,8 @@ button:hover {
 
 .outline {
   outline: 3px solid #ff5e8a;
+}
+
+.dark-mode img {
+  width: 30px;
 }

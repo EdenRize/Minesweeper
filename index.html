@@ -39,14 +39,14 @@
         </button>
         <br />
         <br />
-        <button class="creative-btn" onclick="handleCreative()">
-          Creative
-        </button>
-        <p class="creative-mines" hidden>
-          Mines left to set: <span class="creative-mines"></span>
-        </p>
+        <button class="creative-btn" onclick="onCreative()">Creative</button>
+        <div class="creative-mines-container">
+          <p class="creative-mines" hidden>
+            Mines left to set: <span class="creative-mines"></span>
+          </p>
+        </div>
         <button class="dark-mode" onclick="toggleDarkMode()">
-          Toggle Dark Mode
+          <img class="dark-mode-img" src="./img/moon.svg" />
         </button>
         <div class="resets-container">
           <img onclick="onInit()" class="smiley" src="./img/smiley.svg" />
