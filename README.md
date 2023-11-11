@@ -1,4 +1,4 @@
-# Mine Sweeper
+# MineSweeper
 
 
 ## Table Of Contents
@@ -13,7 +13,7 @@
 
 >[Authors](#authors)
 
-## <a id="desc" /> Wikitube Description
+## <a id="desc" /> MineSweeper Description
 
 Classic Mine Sweeper game with extra features!
 Developed for the first sprint at Coding Academy.
